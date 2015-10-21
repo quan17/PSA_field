@@ -101,11 +101,19 @@ public class Intersections {
     public void getPossibleEnd(){
         int[] timeInfo;
         timeInfo=DBPossibilityTable.ReadPosTable(getId());
-//        setGreenEnd(timeInfo[0]);
-//        setRedEnd(timeInfo[1]);
-//        setCycleLength(timeInfo[2]);
-        setGreenEnd(55);
-        setRedEnd(4);
+        if(timeInfo[2]!=-1)
+        {
+            setGreenEnd(timeInfo[0]);
+            setRedEnd(timeInfo[1]);
+            setCycleLength(timeInfo[2]);
+        }
+        else
+        {
+            setGreenEnd(5);
+            setRedEnd(65);
+            setCycleLength(134);
+        }
+
     }
 
     public int getCycleLength() {

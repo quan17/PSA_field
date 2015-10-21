@@ -19,7 +19,7 @@ public class DBconnection {
 //	    		  "jdbc:mysql://128.235.162.244:3306/apha_live","apha","aphauser"
                     "jdbc:mysql://128.235.162.244:3306/bmw", "app", "adam2009"
             );
-		  System.out.println("Success connect Mysql server!");
+//		  System.out.println("Success connect Mysql server!");
         }catch( SQLException ee)
         {
             ee.printStackTrace();

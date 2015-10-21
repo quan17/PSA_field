@@ -32,24 +32,19 @@ public class MainActivity extends Activity {
     private Timer timerGr;
     private Timer timerLoc;
     private SpeedometerGauge speedometer;
-    float SpeedO=0;
 
-    boolean appTestFlag=false;
+
 
     double distance=3400;  //feet -> m 0.3048
     double speed=55;       //mph -> m/s  *0.447
     double maxRange=100000*0.3048;
     double nextRange=300*0.3048;
     int signalClock=0; //s
-    int GT=134;
-    int AT=4;
-    int RT=61;
-    double safeSpeedLimit=18;
-    int clockDifference=60;
+
     double acc=0;
 
     double advSpeed[]= new double[2];
-    int signalResult[] = new int[3];
+
     int signalInfo[]=new int[4];
 
     boolean inRange=false;
@@ -64,7 +59,6 @@ public class MainActivity extends Activity {
     Intersections interPoints[] = new Intersections[intersectionsAmount];
     int currentInter=intersectionsAmount;
 
-//    MockLocationProvider mock;
 
     TextView TestView=null;
     TextView ResultShowing=null;
@@ -72,12 +66,14 @@ public class MainActivity extends Activity {
 
     LinearLayout linear;
 
-    int clockLength;
+    int clockLength=134;
     int timeRemain;
+    int oldtimeRemain;
 
     int siganlStatus;
-    int greenEnd;
-    int redEnd;
+    int oldsiganlStatus;
+    int greenEnd=5;
+    int redEnd=67;
 
     double maxSpeedLimit=65*0.447;
     double minSpeedLimit=15*0.447;
@@ -148,6 +144,14 @@ public class MainActivity extends Activity {
             timerLoc.cancel();
     }
 
+    @Override
+    protected void onStop()
+    {
+        super.onStop();
+        timerGr.cancel();
+        if(timerLoc!=null)
+            timerLoc.cancel();
+    }
 
     /*------------------ Range Check module-----------------------  */
 
@@ -162,7 +166,6 @@ public class MainActivity extends Activity {
                 checkRangeGapTime = Integer.MAX_VALUE;
                 SignalShowing.setText("In range");
                 checkNextGapTime=1000;
-//                checkNextRunnable.run();
                 timerGr = new Timer();
                 timerGr.scheduleAtFixedRate(new MyCheckRangeTask(), 2000, 1000);
             }
@@ -181,9 +184,9 @@ public class MainActivity extends Activity {
             signalInfo=DBSignalSecond.ReadSignalTable(interPoints[currentInter].getId());
             signalClock=signalInfo[0];
             siganlStatus=signalInfo[1];
-
+            acc=accEstimated();
             advSpeed=SpeedRange();
-
+            UploadInfo();
 
             if(distance<=50&&checkPassing(distance, tempDistance))
             {
@@ -216,12 +219,12 @@ public class MainActivity extends Activity {
         {
             switch (msg.what) {
                 case 1:
-                    signalShow();
+                    signalShow(timeRemain);
                     speedometer.addColoredRange(0, 100, Color.RED);
                     if(advSpeed[0]<=0||advSpeed[1]<=0)
                         ResultShowing.setText("Prepare to stop!");
                     else {
-                        System.out.println("speed:"+advSpeed[0]);
+//                        System.out.println("speed:"+advSpeed[0]);
                         speedometer.addColoredRange(advSpeed[0] * 2.2369, advSpeed[1] * 2.2369, Color.WHITE);
                         ResultShowing.setText("Distance remaining:" + (int) (distance * 3.28) + "  Ft");
                     }
@@ -281,7 +284,7 @@ public class MainActivity extends Activity {
 
     /*------------------ Range Check module-----------------------  */
 
-    /*------------------ Green Remain Time module-----------------------  */
+    /*------------------ Green Remain Time module-----------------------
 
 
 
@@ -348,7 +351,7 @@ public class MainActivity extends Activity {
         return result;
     }
 
-    private double AccEstimated(){
+    private double accEstimated(){
 
         return 2*(distance-speed*timeRemain)/timeRemain/timeRemain;
     }
@@ -361,35 +364,44 @@ public class MainActivity extends Activity {
         int rT;
         if(siganlStatus==2)
             if(redEnd<greenEnd)
-                rT=redEnd+clockLength-signalClock;
+                rT=redEnd+clockLength-1-signalClock;
             else
                 rT=redEnd-signalClock;
         else
             if(redEnd<greenEnd)
                 rT=greenEnd-signalClock;
             else
-                rT=greenEnd+clockLength-signalClock;
+                if(signalClock<=greenEnd)
+                    rT=greenEnd-signalClock;
+                else
+                    rT=greenEnd+clockLength-1-signalClock;
         if(rT<0)
         {
-            System.out.println("remain time negative!! :"+rT);
-            rT =oldRT>0? oldRT - 1:0;
+
+            rT =oldRT>0? oldRT-1:0;
         }
         return rT;
 
     }
 
-    private void signalShow(){
+    private void signalShow(int tR){
+//        if(Math.abs((oldtimeRemain-tR))>10&&oldsiganlStatus!=siganlStatus)
+//        {
+//            System.out.println("time change lot!! :" + oldtimeRemain+":"+tR);
+//            tR = oldtimeRemain > 0 ? (oldtimeRemain-1) : 0;
+//        }
         if(siganlStatus==2) {
-            SignalShowing.setText("Red Remaining : " + "\n" + timeRemain + "s");
+            SignalShowing.setText("Red Remaining : " + "\n" + tR + "s");
             SignalShowing.setBackgroundResource(R.drawable.textview_style_red);
             SignalShowing.setTextColor(Color.WHITE);
         }
         else {
-            SignalShowing.setText("Green Remaining : " + "\n" + timeRemain + "s");
+            SignalShowing.setText("Green Remaining : " + "\n" + tR + "s");
             SignalShowing.setBackgroundResource(R.drawable.textview_style_green);
             SignalShowing.setTextColor(Color.BLACK);
         }
-
+//        oldsiganlStatus=siganlStatus;
+//        oldtimeRemain=tR;
     }
 	/*------------------ Signal module-----------------------  */
 
@@ -440,6 +452,14 @@ public class MainActivity extends Activity {
     /*------------------ Intersection Check module-----------------------  */
 
 
+    /*------------------ Uploading field module-----------------------  */
+    public void UploadInfo()
+    {
+        DBupdateInfo.updateDB(interPoints[currentInter].getId(),distance,speed,acc,siganlStatus,timeRemain,advSpeed[0],advSpeed[1]);
+    }
+
+
+    /*------------------ Uploading field module-----------------------  */
     /*------------------ GPS module-----------------------  */
 
     private LocationManager locationManager;
@@ -447,8 +467,7 @@ public class MainActivity extends Activity {
     private Location location;
 
 
-    private float UnitSpeed = 2.2369f;
-    private String UnitSpeedString = "MPH";
+
 
     private void OpenGPS() {
 

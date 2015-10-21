@@ -9,13 +9,13 @@ import java.sql.SQLException;
  * Created by root on 10/14/15.
  */
 public class DBupdateInfo {
-    public static void updateDB(double lat,double lon,double dis, double speed, double acc, int status, int remainTime, int minSpeed, int maxSpeed){
+    public static void updateDB(int InterId, double dis, double speed, double acc, int status, int remainTime, double minSpeed, double maxSpeed){
         try
         {
             Connection con=DBconnection.getConnection();
             PreparedStatement psta;
-            psta = con.prepareStatement("insert into field_data (`distance`, `speed`, `acc`, `signal`, `remaintime`,`minspeed`,`maxspeed`,) values ("
-                    +dis+","+speed+","+acc+","+status+","+remainTime+","+minSpeed+","+maxSpeed+");");
+            psta = con.prepareStatement("insert into `field_data_result` (`InterId`, `distance`, `speed`, `acc`, `signal`, `remaintime`,`minspeed`,`maxspeed`) values ("
+                    +InterId+","+dis+","+speed+","+acc+","+status+","+remainTime+","+minSpeed+","+maxSpeed+");");
 //            ResultSet rs =
               psta.executeUpdate();
 //            if(rs.next())
