@@ -14,10 +14,13 @@ import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 
-import android.widget.Button;
+import android.view.ViewTreeObserver;
+import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.widget.LinearLayout;
+import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.util.Log;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -122,6 +125,26 @@ public class MainActivity extends Activity {
         speedometer.setMajorTickStep(10);
         speedometer.setMinorTicks(4);
         speedometer.setSpeed(0);
+
+
+        linear = (LinearLayout) findViewById(R.id.parent);
+
+        ViewTreeObserver vto2 = linear.getViewTreeObserver();
+        vto2.addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                linear.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                int size = 0;
+                if (linear.getHeight() >= linear.getWidth()) {
+                    size = linear.getHeight() - 10;
+                    Log.e("Sizes", "" + size);
+                } else {
+                    size = linear.getWidth() - 10;
+                    Log.e("Sizes", "" + size);
+                }
+                speedometer.setLayoutParams(new LayoutParams(size, size));
+            }
+        });
 
 
     }
