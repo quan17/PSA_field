@@ -285,7 +285,7 @@ public class MainActivity extends Activity {
     private boolean checkPassing(double curDis,double oldDis){
         if(curDis>oldDis+0.5&&speed>0.5)
         {
-            System.out.println("***"+"wrong"+curDis+";"+oldDis);
+//            System.out.println("***"+"wrong"+curDis+";"+oldDis);
             return true;
         }
 
@@ -299,7 +299,7 @@ public class MainActivity extends Activity {
     private boolean checkDirection(double curDis,double oldDis){
         if(curDis>oldDis+3&&speed>1.5)
         {
-//            System.out.println("***"+curDis+";"+oldDis);
+            System.out.println("***"+"wrong"+curDis+";"+oldDis);
             return true;
         }
 
