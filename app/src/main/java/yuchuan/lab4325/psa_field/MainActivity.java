@@ -40,7 +40,7 @@ public class MainActivity extends Activity {
 
     double distance=3400;  //feet -> m 0.3048
     double speed=55;       //mph -> m/s  *0.447
-    double maxRange=100000*0.3048;
+    double maxRange=3000*0.3048;
     double nextRange=300*0.3048;
     int signalClock=0; //s
 
@@ -60,7 +60,7 @@ public class MainActivity extends Activity {
     boolean directionCheck=true;
     int intersectionsAmount=11;
     Intersections interPoints[] = new Intersections[intersectionsAmount];
-    int currentInter=intersectionsAmount;
+    int currentInter=0;
 
 
     TextView TestView=null;
@@ -187,6 +187,7 @@ public class MainActivity extends Activity {
             checkHandler.postDelayed(this, checkRangeGapTime);
             if(inRange) {
                 checkRangeGapTime = Integer.MAX_VALUE;
+                TestView.setText("Next is " + interPoints[currentInter].getName() + "!");
                 SignalShowing.setText("In range");
                 checkNextGapTime=1000;
                 timerGr = new Timer();
@@ -211,7 +212,14 @@ public class MainActivity extends Activity {
             advSpeed=SpeedRange();
             UploadInfo();
 
-            if(distance<=50&&checkPassing(distance, tempDistance))
+            if(directionCheck&&checkDirection(distance, tempDistance))
+            {
+                interPoints[currentInter].setPassed(true);
+                interCheck = true;
+                nextInter();
+            }
+
+            if(distance<=100&&checkPassing(distance, tempDistance))
             {
                 tempDistance = 9000;
 
@@ -219,10 +227,11 @@ public class MainActivity extends Activity {
                 interPoints[currentInter].setPassed(true);
                 inRange = false;
                 interCheck = true;
-
+                nextInter();
                 Message message = new Message();
                 message.what = 2;
                 mHandler.sendMessage(message);
+//                mHandler.sendMessageDelayed(message,500);
 
             }
             else
@@ -242,10 +251,14 @@ public class MainActivity extends Activity {
         {
             switch (msg.what) {
                 case 1:
+                    TestView.setText("Next is " + interPoints[currentInter].getName() + "!");
                     signalShow(timeRemain);
                     speedometer.addColoredRange(0, 100, Color.RED);
                     if(advSpeed[0]<=0||advSpeed[1]<=0)
-                        ResultShowing.setText("Prepare to stop!");
+//                        ResultShowing.setText("Prepare to stop!");
+// for tesing
+
+                            ResultShowing.setText("Distance remaining:" + (int) (distance * 3.28) + "  Ft");
                     else {
 //                        System.out.println("speed:"+advSpeed[0]);
                         speedometer.addColoredRange(advSpeed[0] * 2.2369, advSpeed[1] * 2.2369, Color.WHITE);
@@ -260,7 +273,8 @@ public class MainActivity extends Activity {
                     timerGr.cancel();
                     SignalShowing.setText("New Intersection" + currentInter + "  Come!");
                     TestView.setText("Next is " + interPoints[currentInter].getName() + "!");
-                    checkRangeRunnable.run();
+                    timerGr = new Timer();
+                    timerGr.scheduleAtFixedRate(new MyCheckRangeTask(), 1000, 1000);
                     break;
             } super.handleMessage(msg);
         };
@@ -270,6 +284,20 @@ public class MainActivity extends Activity {
 
     private boolean checkPassing(double curDis,double oldDis){
         if(curDis>oldDis+0.5&&speed>0.5)
+        {
+            System.out.println("***"+"wrong"+curDis+";"+oldDis);
+            return true;
+        }
+
+        else
+        {
+//            System.out.println("###"+curDis+";"+oldDis);
+            return false;
+        }
+    }
+
+    private boolean checkDirection(double curDis,double oldDis){
+        if(curDis>oldDis+3&&speed>1.5)
         {
 //            System.out.println("***"+curDis+";"+oldDis);
             return true;
@@ -281,7 +309,6 @@ public class MainActivity extends Activity {
             return false;
         }
     }
-
 
 
 
@@ -528,7 +555,7 @@ public class MainActivity extends Activity {
             //System.out.println("distance change to"+distance);
             speed=location.getSpeed();
             speedometer.setSpeed(speed*2.2369);
-            if(distance<50||directionCheck)
+            if(true||distance<100||directionCheck)
                 if(tempflag) {
                     tempDistance = distance;
                     System.out.println("^^^"+tempDistance);
