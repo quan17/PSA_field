@@ -98,9 +98,9 @@ public class Intersections {
         RedEnd = redEnd;
     }
 
-    public void getPossibleEnd(){
+    public void getPossibleEnd(int pos){
         int[] timeInfo;
-        timeInfo=DBPossibilityTable.ReadPosTable(getId());
+        timeInfo=DBPossibilityTable.ReadPosTable(getId(),pos);
         if(timeInfo[2]!=-1)
         {
             setGreenEnd(timeInfo[0]);

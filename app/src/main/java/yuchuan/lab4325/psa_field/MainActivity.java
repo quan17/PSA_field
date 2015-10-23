@@ -77,7 +77,7 @@ public class MainActivity extends Activity {
     int oldsiganlStatus;
     int greenEnd=5;
     int redEnd=67;
-
+    int posEnd=90;
     double maxSpeedLimit=65*0.447;
     double minSpeedLimit=15*0.447;
 
@@ -93,13 +93,26 @@ public class MainActivity extends Activity {
         interPoints[1]=new Intersections(1402,"Gill Ln" ,40.557134,-74.308436,51,84);
         interPoints[2]=new Intersections(1403,"Ford Ave",40.550120,-74.321814);
         interPoints[3]=new Intersections(1404,"Parsonage",40.544934,-74.331105);
-        interPoints[4]=new Intersections(1405,"Grandview Ave",40.539864,-74.338640);
+        interPoints[4]=new Intersections(1405,"Grandview Ave",40.53977,-74.33867);
         interPoints[5]=new Intersections(1406,"PrinceSt",40.523625,-74.360836);
-        interPoints[6]=new Intersections(1407,"Forest Haven Blvd",40.519740,-74.365958);
-        interPoints[7]=new Intersections(1408,"Old Post Rd North",40.515172,-74.374984);
-        interPoints[8]=new Intersections(1409,"Old Post Rd South",40.510651,-74.385792);
-        interPoints[9]=new Intersections(1410,"Wooding Ave",40.507970,-74.391544);
-        interPoints[10]=new Intersections(1411,"Plainfield Av",40.504138,-74.398789);
+        interPoints[6]=new Intersections(1407,"Forest Haven Blvd",40.51947,-74.36629);
+        interPoints[7]=new Intersections(1408,"Old Post Rd North",40.51487,-74.37558);
+        interPoints[8]=new Intersections(1409,"Old Post Rd South",40.51055,-74.38593);
+        interPoints[9]=new Intersections(1410,"Wooding Ave",40.50787,-74.39162);
+        interPoints[10]=new Intersections(1411,"Plainfield Av",40.50394,-74.39909);
+
+//        interPoints[0]=new Intersections(1401,"Green St",40.563083, -74.300473,74,60);
+//        interPoints[1]=new Intersections(1402,"Gill Ln" ,40.557134,-74.308436,51,84);
+//        interPoints[2]=new Intersections(1403,"Ford Ave",40.550120,-74.321814);
+//        interPoints[3]=new Intersections(1404,"Parsonage",40.544934,-74.331105);
+//        interPoints[4]=new Intersections(1405,"Grandview Ave",40.539864,-74.338640);
+//        interPoints[5]=new Intersections(1406,"PrinceSt",40.523625,-74.360836);
+//        interPoints[6]=new Intersections(1407,"Forest Haven Blvd",40.519740,-74.365958);
+//        interPoints[7]=new Intersections(1408,"Old Post Rd North",40.515172,-74.374984);
+//        interPoints[8]=new Intersections(1409,"Old Post Rd South",40.510651,-74.385792);
+//        interPoints[9]=new Intersections(1410,"Wooding Ave",40.507970,-74.391544);
+//        interPoints[10]=new Intersections(1411,"Plainfield Av",40.504138,-74.398789);
+
 
         locationManager=(LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         GetProvider();
@@ -469,7 +482,7 @@ public class MainActivity extends Activity {
         {
             interCheck = false;
             currentInter = tempInter;
-            interPoints[currentInter].getPossibleEnd();
+            interPoints[currentInter].getPossibleEnd(posEnd);
             redEnd=interPoints[currentInter].getRedEnd();
             greenEnd=interPoints[currentInter].getGreenEnd();
             clockLength=interPoints[currentInter].getCycleLength();

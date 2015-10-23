@@ -10,7 +10,7 @@ import java.sql.SQLException;
  * Created by root on 10/14/15.
  */
 public class DBPossibilityTable {
-    public static int[] ReadPosTable(int TableId) {
+    public static int[] ReadPosTable(int TableId, int pos) {
 
         int[] timeInfo=new int[3];
         try
@@ -19,8 +19,8 @@ public class DBPossibilityTable {
             PreparedStatement psta;
             if(TableId>2&&TableId<7)
             {
-                psta = con.prepareStatement("select "+TableId+"_Length, "+TableId+"_GE, "+TableId+"_RE from Possibility_EndTime where TIMESTAMPDIFF(MINUTE,createtime,NOW())<30;");
-
+//                psta = con.prepareStatement("select "+TableId+"_Length, "+TableId+"_GE, "+TableId+"_RE from Possibility_EndTime where TIMESTAMPDIFF(MINUTE,createtime,NOW())<30;");
+                psta = con.prepareStatement("select "+TableId+"_Length, "+TableId+"_pos_"+pos+"_GE, "+TableId+"_pos_"+pos+"_RE from Possibility_EndTime where TIMESTAMPDIFF(MINUTE,createtime,NOW())<30;");
                 ResultSet rs = psta.executeQuery();
 
                 if(rs.next())
