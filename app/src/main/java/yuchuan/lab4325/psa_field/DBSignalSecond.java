@@ -23,7 +23,7 @@ public class DBSignalSecond
 				Connection con=DBconnection.getConnection();
 
 				PreparedStatement psta;
-				if(TableId>2&&TableId<7)
+				if(TableId>1402&&TableId<1407)
 					psta = con.prepareStatement("select Cyclesecond,s2,g1,r1 from (select id,Cyclesecond,s2,g1,r1,Time_Stamp from lstatus_newjersey_sc1401_new order by id DESC limit 0,1)aa");
 				else
 					psta = con.prepareStatement("select Cyclesecond,s2,g1,r1 from (select id,Cyclesecond,s2,g1,r1,Time_Stamp from lstatus_newjersey_sc"+TableId+"_new order by id DESC limit 0,1)aa");

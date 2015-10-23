@@ -16,7 +16,6 @@ public class DBconnection {
         {
             Class.forName("com.mysql.jdbc.Driver");
             con = (Connection) DriverManager.getConnection(
-//	    		  "jdbc:mysql://128.235.162.244:3306/apha_live","apha","aphauser"
                     "jdbc:mysql://128.235.162.244:3306/bmw", "app", "adam2009"
             );
 //		  System.out.println("Success connect Mysql server!");
@@ -32,3 +31,4 @@ public class DBconnection {
         return con;
     }
 }
+//	    		  "jdbc:mysql://128.235.162.244:3306/apha_live","apha","aphauser"

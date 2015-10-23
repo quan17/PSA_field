@@ -33,7 +33,7 @@
         android:id="@+id/btn"
         android:layout_width="80dp"
         android:layout_height="35dp"
-        android:text="Return"
+        android:text="Refresh"
         android:visibility="gone" />
 
     <TextView

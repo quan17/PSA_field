@@ -14,8 +14,10 @@ import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 
+import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.ViewTreeObserver.OnGlobalLayoutListener;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
@@ -61,11 +63,12 @@ public class MainActivity extends Activity {
     int intersectionsAmount=11;
     Intersections interPoints[] = new Intersections[intersectionsAmount];
     int currentInter=0;
-
+    boolean firstRun=true;
 
     TextView TestView=null;
     TextView ResultShowing=null;
     TextView SignalShowing=null;
+    Button refreshButton=null;
 
     LinearLayout linear;
 
@@ -78,8 +81,8 @@ public class MainActivity extends Activity {
     int greenEnd=5;
     int redEnd=67;
     int posEnd=90;
-    double maxSpeedLimit=65*0.447;
-    double minSpeedLimit=15*0.447;
+    double maxSpeedLimit=50*0.447;
+    double minSpeedLimit=20*0.447;
 
 
     @Override
@@ -95,13 +98,13 @@ public class MainActivity extends Activity {
         interPoints[3]=new Intersections(1404,"Parsonage",40.544934,-74.331105);
         interPoints[4]=new Intersections(1405,"Grandview Ave",40.53977,-74.33867);
         interPoints[5]=new Intersections(1406,"PrinceSt",40.523625,-74.360836);
-        interPoints[6]=new Intersections(1407,"Forest Haven Blvd",40.51947,-74.36629);
-        interPoints[7]=new Intersections(1408,"Old Post Rd North",40.51487,-74.37558);
-        interPoints[8]=new Intersections(1409,"Old Post Rd South",40.51055,-74.38593);
-        interPoints[9]=new Intersections(1410,"Wooding Ave",40.50787,-74.39162);
-        interPoints[10]=new Intersections(1411,"Plainfield Av",40.50394,-74.39909);
+        interPoints[6]=new Intersections(1407,"Forest Haven Blvd",40.519740,-74.365958);
+        interPoints[7]=new Intersections(1408,"Old Post Rd North",40.515172,-74.374984);
+        interPoints[8]=new Intersections(1409,"Old Post Rd South",40.510579, -74.385787);
+        interPoints[9]=new Intersections(1410,"Wooding Ave",40.507901, -74.391546);
+        interPoints[10]=new Intersections(1411,"Plainfield Av",40.504078, -74.398781);
 
-//        interPoints[0]=new Intersections(1401,"Green St",40.563083, -74.300473,74,60);
+//        interPoints[0]=new Intersections(1401,"Green St",40.563083, -74.300473,74,60);Z
 //        interPoints[1]=new Intersections(1402,"Gill Ln" ,40.557134,-74.308436,51,84);
 //        interPoints[2]=new Intersections(1403,"Ford Ave",40.550120,-74.321814);
 //        interPoints[3]=new Intersections(1404,"Parsonage",40.544934,-74.331105);
@@ -125,6 +128,14 @@ public class MainActivity extends Activity {
         TestView=(TextView)findViewById(R.id.titletxt);
         ResultShowing =(TextView) findViewById(R.id.message);
         SignalShowing =(TextView) findViewById(R.id.SignalStatus);
+        refreshButton=(Button)findViewById(R.id.btn);
+        refreshButton.setVisibility(View.VISIBLE);
+        refreshButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                MainActivity.this.onStart();
+            }
+        });
 
         speedometer = (SpeedometerGauge) findViewById(R.id.speedometer);
         speedometer.setMaxSpeed(70);
@@ -184,7 +195,8 @@ public class MainActivity extends Activity {
     protected void onStop()
     {
         super.onStop();
-        timerGr.cancel();
+        if(timerGr!=null)
+            timerGr.cancel();
         if(timerLoc!=null)
             timerLoc.cancel();
     }
@@ -216,24 +228,36 @@ public class MainActivity extends Activity {
     private class MyCheckRangeTask extends TimerTask {
         @Override
         public void run() {
-
+            if(firstRun)
+            {
+                interPoints[currentInter].getPossibleEnd(posEnd);
+                redEnd=interPoints[currentInter].getRedEnd();
+                greenEnd=interPoints[currentInter].getGreenEnd();
+                clockLength=interPoints[currentInter].getCycleLength();
+                firstRun=false;
+            }
             timeRemain=signalRemain(timeRemain);
             signalInfo=DBSignalSecond.ReadSignalTable(interPoints[currentInter].getId());
             signalClock=signalInfo[0];
             siganlStatus=signalInfo[1];
             acc=accEstimated();
             advSpeed=SpeedRange();
-            UploadInfo();
+//            UploadInfo();
 
             if(directionCheck&&checkDirection(distance, tempDistance))
             {
                 interPoints[currentInter].setPassed(true);
                 interCheck = true;
                 nextInter();
+                interPoints[currentInter].getPossibleEnd(posEnd);
+                redEnd=interPoints[currentInter].getRedEnd();
+                greenEnd=interPoints[currentInter].getGreenEnd();
+                clockLength=interPoints[currentInter].getCycleLength();
             }
 
             if(distance<=100&&checkPassing(distance, tempDistance))
             {
+                directionCheck=false;
                 tempDistance = 9000;
 
 
@@ -241,6 +265,10 @@ public class MainActivity extends Activity {
                 inRange = false;
                 interCheck = true;
                 nextInter();
+                interPoints[currentInter].getPossibleEnd(posEnd);
+                redEnd=interPoints[currentInter].getRedEnd();
+                greenEnd=interPoints[currentInter].getGreenEnd();
+                clockLength=interPoints[currentInter].getCycleLength();
                 Message message = new Message();
                 message.what = 2;
                 mHandler.sendMessage(message);
@@ -268,10 +296,10 @@ public class MainActivity extends Activity {
                     signalShow(timeRemain);
                     speedometer.addColoredRange(0, 100, Color.RED);
                     if(advSpeed[0]<=0||advSpeed[1]<=0)
-//                        ResultShowing.setText("Prepare to stop!");
+                        ResultShowing.setText("Prepare to stop!");
 // for tesing
 
-                            ResultShowing.setText("Distance remaining:" + (int) (distance * 3.28) + "  Ft");
+//                            ResultShowing.setText("Distance remaining:" + (int) (distance * 3.28) + "  Ft");
                     else {
 //                        System.out.println("speed:"+advSpeed[0]);
                         speedometer.addColoredRange(advSpeed[0] * 2.2369, advSpeed[1] * 2.2369, Color.WHITE);
@@ -310,7 +338,7 @@ public class MainActivity extends Activity {
     }
 
     private boolean checkDirection(double curDis,double oldDis){
-        if(curDis>oldDis+3&&speed>1.5)
+        if(curDis>oldDis+3&&speed>4)
         {
             System.out.println("***"+"wrong"+curDis+";"+oldDis);
             return true;
@@ -379,7 +407,9 @@ public class MainActivity extends Activity {
 
     private double[] SpeedRange() {
         double minS, maxS;
-
+        double[] wrongresult ={-1,-1};
+        if(timeRemain<=0)
+            return wrongresult;
         double advSpeed;
         if(acc>=-3.0&&acc<=3.0){
             advSpeed=speed+acc*timeRemain;
@@ -425,24 +455,43 @@ public class MainActivity extends Activity {
 
     private int signalRemain(int oldRT){
         int rT;
-        if(siganlStatus==2)
-            if(redEnd<greenEnd)
-                rT=redEnd+clockLength-1-signalClock;
-            else
-                rT=redEnd-signalClock;
-        else
-            if(redEnd<greenEnd)
+//        if(siganlStatus==2)
+//            if(redEnd<greenEnd)
+//                rT=redEnd+clockLength-1-signalClock;
+//            else
+//                rT=redEnd-signalClock;
+//        else
+//            if(redEnd<greenEnd)
+//                rT=greenEnd-signalClock;
+//            else
+//                if(signalClock<=greenEnd)
+//                    rT=greenEnd-signalClock;
+//                else
+//                    rT=greenEnd+clockLength-1-signalClock;
+        if(signalClock<=greenEnd)
+            if(siganlStatus!=2)
                 rT=greenEnd-signalClock;
             else
-                if(signalClock<=greenEnd)
-                    rT=greenEnd-signalClock;
-                else
-                    rT=greenEnd+clockLength-1-signalClock;
-        if(rT<0)
-        {
+                rT=-1;
+        else if(signalClock<=redEnd)
+            if(siganlStatus==2)
+                rT=redEnd-signalClock;
+            else
+                rT=-1;
+        else
+        if(siganlStatus!=2)
+            rT=greenEnd+clockLength-1-signalClock;
+        else
+            rT=-1;
 
-            rT =oldRT>0? oldRT-1:0;
-        }
+
+
+
+//        if(rT<0)
+//        {
+//            System.out.println(rT+"time");
+//            rT =oldRT>0? oldRT-1:0;
+//        }
         return rT;
 
     }
@@ -454,12 +503,18 @@ public class MainActivity extends Activity {
 //            tR = oldtimeRemain > 0 ? (oldtimeRemain-1) : 0;
 //        }
         if(siganlStatus==2) {
-            SignalShowing.setText("Red Remaining : " + "\n" + tR + "s");
+            if(tR<=0)
+                SignalShowing.setText("Recalculating");
+            else
+                SignalShowing.setText("Red Remaining : " + "\n" + tR + "s");
             SignalShowing.setBackgroundResource(R.drawable.textview_style_red);
             SignalShowing.setTextColor(Color.WHITE);
         }
         else {
-            SignalShowing.setText("Green Remaining : " + "\n" + tR + "s");
+            if(tR<=0)
+                SignalShowing.setText("Recalculating");
+            else
+                SignalShowing.setText("Green Remaining : " + "\n" + tR + "s");
             SignalShowing.setBackgroundResource(R.drawable.textview_style_green);
             SignalShowing.setTextColor(Color.BLACK);
         }
@@ -482,10 +537,10 @@ public class MainActivity extends Activity {
         {
             interCheck = false;
             currentInter = tempInter;
-            interPoints[currentInter].getPossibleEnd(posEnd);
-            redEnd=interPoints[currentInter].getRedEnd();
-            greenEnd=interPoints[currentInter].getGreenEnd();
-            clockLength=interPoints[currentInter].getCycleLength();
+//            interPoints[currentInter].getPossibleEnd(posEnd);
+//            redEnd=interPoints[currentInter].getRedEnd();
+//            greenEnd=interPoints[currentInter].getGreenEnd();
+//            clockLength=interPoints[currentInter].getCycleLength();
         }
     }
 
@@ -571,12 +626,12 @@ public class MainActivity extends Activity {
             if(true||distance<100||directionCheck)
                 if(tempflag) {
                     tempDistance = distance;
-                    System.out.println("^^^"+tempDistance);
+//                    System.out.println("^^^"+tempDistance);
                     tempflag = !tempflag;
                 }
                 else {
                     tempflag = !tempflag;
-                    System.out.println("~~~"+tempDistance);
+//                    System.out.println("~~~"+tempDistance);
 
                 }
         }
