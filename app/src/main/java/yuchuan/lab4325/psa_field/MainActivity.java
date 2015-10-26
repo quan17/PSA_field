@@ -42,7 +42,7 @@ public class MainActivity extends Activity {
 
     double distance=3400;  //feet -> m 0.3048
     double speed=55;       //mph -> m/s  *0.447
-    double maxRange=3000*0.3048;
+    double maxRange=300000*0.3048;
     double nextRange=300*0.3048;
     int signalClock=0; //s
 
@@ -83,7 +83,8 @@ public class MainActivity extends Activity {
     int posEnd=90;
     double maxSpeedLimit=50*0.447;
     double minSpeedLimit=20*0.447;
-
+    double locs[]=new double[2];
+    int falseDirCount=0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -133,7 +134,10 @@ public class MainActivity extends Activity {
         refreshButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                MainActivity.this.onStart();
+                interCheck=true;
+                for(int i=0; i<11;i++)
+                    interPoints[i].setPassed(false);
+                nextInter();
             }
         });
 
@@ -219,7 +223,7 @@ public class MainActivity extends Activity {
                 timerGr.scheduleAtFixedRate(new MyCheckRangeTask(), 2000, 1000);
             }
             else {
-                SignalShowing.setText("still"+distance+"m");
+//                SignalShowing.setText("still"+distance+"m");
             }
         }
     };
@@ -235,27 +239,36 @@ public class MainActivity extends Activity {
                 greenEnd=interPoints[currentInter].getGreenEnd();
                 clockLength=interPoints[currentInter].getCycleLength();
                 firstRun=false;
+                falseDirCount=0;
+                tempDistance=100000;
             }
             timeRemain=signalRemain(timeRemain);
             signalInfo=DBSignalSecond.ReadSignalTable(interPoints[currentInter].getId());
             signalClock=signalInfo[0];
             siganlStatus=signalInfo[1];
             acc=accEstimated();
+            System.out.println("acc:"+acc);
             advSpeed=SpeedRange();
-//            UploadInfo();
 
-            if(directionCheck&&checkDirection(distance, tempDistance))
+//            UploadInfo();
+//            System.out.println("locs"+locs[0]);
+//            System.out.println("gps"+location.getLongitude());
+            if(false&&checkDirection(distance, tempDistance))
             {
                 interPoints[currentInter].setPassed(true);
                 interCheck = true;
-                nextInter();
-                interPoints[currentInter].getPossibleEnd(posEnd);
-                redEnd=interPoints[currentInter].getRedEnd();
-                greenEnd=interPoints[currentInter].getGreenEnd();
-                clockLength=interPoints[currentInter].getCycleLength();
-            }
 
-            if(distance<=100&&checkPassing(distance, tempDistance))
+                nextInter();
+//                interPoints[currentInter].getPossibleEnd(posEnd);
+//                redEnd=interPoints[currentInter].getRedEnd();
+//                greenEnd=interPoints[currentInter].getGreenEnd();
+//                clockLength=interPoints[currentInter].getCycleLength();
+                firstRun=true;
+                Message message = new Message();
+                message.what = 2;
+                mHandler.sendMessage(message);
+            }
+             else if(distance<=100&&checkPassing(distance, tempDistance))
             {
                 directionCheck=false;
                 tempDistance = 9000;
@@ -265,10 +278,11 @@ public class MainActivity extends Activity {
                 inRange = false;
                 interCheck = true;
                 nextInter();
-                interPoints[currentInter].getPossibleEnd(posEnd);
-                redEnd=interPoints[currentInter].getRedEnd();
-                greenEnd=interPoints[currentInter].getGreenEnd();
-                clockLength=interPoints[currentInter].getCycleLength();
+//                interPoints[currentInter].getPossibleEnd(posEnd);
+//                redEnd=interPoints[currentInter].getRedEnd();
+//                greenEnd=interPoints[currentInter].getGreenEnd();
+//                clockLength=interPoints[currentInter].getCycleLength();
+                firstRun=true;
                 Message message = new Message();
                 message.what = 2;
                 mHandler.sendMessage(message);
@@ -281,6 +295,7 @@ public class MainActivity extends Activity {
                 message.what = 1;
                 mHandler.sendMessage(message);
             }
+            directionCheck=true;
         }
     }
 
@@ -313,7 +328,7 @@ public class MainActivity extends Activity {
                     speedometer.setSpeed(speed * 2.2369);
                     timerGr.cancel();
                     SignalShowing.setText("New Intersection" + currentInter + "  Come!");
-                    TestView.setText("Next is " + interPoints[currentInter].getName() + "!");
+                     TestView.setText("Next is " + interPoints[currentInter].getName() + "!");
                     timerGr = new Timer();
                     timerGr.scheduleAtFixedRate(new MyCheckRangeTask(), 1000, 1000);
                     break;
@@ -341,14 +356,13 @@ public class MainActivity extends Activity {
         if(curDis>oldDis+3&&speed>4)
         {
             System.out.println("***"+"wrong"+curDis+";"+oldDis);
-            return true;
+            falseDirCount++;
         }
 
-        else
-        {
-//            System.out.println("###"+curDis+";"+oldDis);
+        if(falseDirCount>3)
+            return true;
+        //            System.out.println("###"+curDis+";"+oldDis);
             return false;
-        }
     }
 
 
@@ -419,7 +433,7 @@ public class MainActivity extends Activity {
                 minS=minSpeedLimit;
                 maxS=advSpeed<maxSpeedLimit?advSpeed:maxSpeedLimit;
                 if(maxS<=minS)
-                    maxS=minS+5;
+                    return wrongresult;
             }
             else
             {
@@ -506,7 +520,7 @@ public class MainActivity extends Activity {
             if(tR<=0)
                 SignalShowing.setText("Recalculating");
             else
-                SignalShowing.setText("Red Remaining : " + "\n" + tR + "s");
+                SignalShowing.setText("Estimated Time to Green : " + "\n" + tR + "s");
             SignalShowing.setBackgroundResource(R.drawable.textview_style_red);
             SignalShowing.setTextColor(Color.WHITE);
         }
@@ -514,7 +528,7 @@ public class MainActivity extends Activity {
             if(tR<=0)
                 SignalShowing.setText("Recalculating");
             else
-                SignalShowing.setText("Green Remaining : " + "\n" + tR + "s");
+                SignalShowing.setText("Estimated Time to Red : " + "\n" + tR + "s");
             SignalShowing.setBackgroundResource(R.drawable.textview_style_green);
             SignalShowing.setTextColor(Color.BLACK);
         }
@@ -529,7 +543,19 @@ public class MainActivity extends Activity {
     {
         int tempInter=currentInter;
         if(interCheck)
-            tempInter=findNearInter(0,intersectionsAmount,location);
+        {
+            try{
+
+                tempInter = findNearInter(currentInter, 11);
+            }
+            catch (Exception e)
+            {
+                onStop();
+//                for(int i=0; i<11;i++)
+//                    interPoints[i].setPassed(false);
+//                nextInter();
+            }
+        }
 //            else
 //                return;
 
@@ -545,26 +571,30 @@ public class MainActivity extends Activity {
     }
 
 
-    private int findNearInter(int startI, int endI, Location location){
+    private int findNearInter(int startI, int endI){
         double minDis=100000000;
         double curDis=0;
         int interIndex=-1;
-        for(int i=startI; i<endI;i++){
+        for(int i=0; i<endI;i++){
             if(!interPoints[i].isPassed())
+//            if(i!=startI)
             {
-                if(location!=null)
-                    curDis=gps2m(location.getLatitude(), location.getLongitude(), interPoints[i].getLat(), interPoints[i].getLng());
+                if(locs[0]!=0)
+                    curDis=gps2m(locs[0],locs[1], interPoints[i].getLat(), interPoints[i].getLng());
                 else
                     curDis=gps2m(40.566293, -74.297787, interPoints[i].getLat(), interPoints[i].getLng());
                 if(minDis>curDis){
                     minDis=curDis;
+                    System.out.println("inter"+i+" !!dis "+curDis);
                     interIndex=i;
                     directionCheck=true;
                 }
 
             }
+//            else
+//                continue;
         }
-
+        System.out.println("min is"+interIndex);
         return interIndex;
     }
     /*------------------ Intersection Check module-----------------------  */
@@ -620,10 +650,13 @@ public class MainActivity extends Activity {
 //			UpdateWithNewLocation(location);
             if(currentInter<intersectionsAmount)
                 distance=gps2m(location.getLatitude(), location.getLongitude(), interPoints[currentInter].getLat(), interPoints[currentInter].getLng());
+            locs[0]=location.getLatitude();
+            locs[1]=location.getLongitude();
             //System.out.println("distance change to"+distance);
             speed=location.getSpeed();
             speedometer.setSpeed(speed*2.2369);
             if(true||distance<100||directionCheck)
+//                tempDistance = distance;
                 if(tempflag) {
                     tempDistance = distance;
 //                    System.out.println("^^^"+tempDistance);

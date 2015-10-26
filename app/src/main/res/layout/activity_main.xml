@@ -31,7 +31,7 @@
 
     <Button
         android:id="@+id/btn"
-        android:layout_width="80dp"
+        android:layout_width="100dp"
         android:layout_height="35dp"
         android:text="Refresh"
         android:visibility="gone" />
@@ -40,7 +40,7 @@
         android:id="@+id/message"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:textSize="16dp"
+        android:textSize="24dp"
         android:textColor="#ffffff"/>
 
     <LinearLayout
